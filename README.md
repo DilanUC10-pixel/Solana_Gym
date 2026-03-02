@@ -1,86 +1,102 @@
-# Primeros pasos en Solana
-![Banner](./images/SolanaBanner.jpg)
-Solana es una blockchain de capa 1, es decir, cuenta con su propia infraestructura y no depende de otras blockchains para funcionar. Se encuentra orientada al alto rendimiento, y fue creada para soportar aplicaciones descentralizadas a gran escala con costos mínimos y confirmaciones casi inmediatas. Su diseño prioriza la eficiencia en la ejecución y la paralelización de transacciones.
+# 🏋️ GymChain — Gestión de Gimnasio en Solana
 
-Rust es el lenguaje principal para desarrollar programas en Solana. A través de él se implementa la lógica on-chain utilizando el modelo de cuentas y programas de la red, permitiendo construir contratos inteligentes seguros, eficientes y altamente optimizables.
+GymChain es un programa on-chain desarrollado en **Rust con Anchor** sobre la blockchain de **Solana**. Permite a dueños de gimnasios gestionar sus miembros y membresías de forma descentralizada, transparente e inmutable.
 
-Puedes comenzar dándole Fork a este repositorio (abajo te explicamos como 👇)
+---
 
-Asegúrate de clonar este repositorio a tu cuenta usando el botón **`Fork`**.
+## 📌 ¿Qué hace el proyecto?
 
-![fork](./images/fork.png)
+GymChain implementa un sistema CRUD completo para administrar un gimnasio:
 
-* Puedes renombrar el repositorio a lo que sea que se ajuste con tu proyecto.
+- **Crear** un gimnasio vinculado a tu wallet (owner)
+- **Registrar miembros** con nombre y días de membresía
+- **Eliminar miembros** cerrando su cuenta en la blockchain
+- **Activar/desactivar** membresías (ej: miembro moroso)
+- **Actualizar días** restantes (ej: al renovar membresía)
 
-## Solana Playground
-Solana Playground es un entorno de desarrollo online que permite escribir, compilar, desplegar y probar programas de Solana directamente desde el navegador, sin necesidad de instalar herramientas locales como Rust, Solana CLI o Anchor.
+Cada gimnasio y cada miembro son cuentas derivadas (**PDA**) únicas en Solana, lo que garantiza que no puede haber duplicados y que solo el owner autorizado puede modificarlas.
 
-![Playground](./images/playground.png)
+---
 
-Para abrir el **Playground** solo es necesario dar clic 👉 [Aquí](https://beta.solpg.io)
+## 🏗️ Arquitectura
 
-## Configuración del entorno
-
-Primero conectaremos el entorno con la devnet, lo que tambien procederá a la creación de una wallet. Para eso daremos clic en donde dice **Not Conected**:
-
-![playground1](./images/playground1.png)
-
-Saldrá la siguiente ventana donde daremos en el botón **Continue**:
-
-![wallet](./images/wallet.png)
-
-Como resultado se mostrará la siguiente información:
-
-![status](./images/status.png)
-
-* En verde: el estado de la conexión y el entorno al que se encuentra conectado
-
-* En amarillo: la la dirección de la wallet conectada
-
-* En azul: la cantidad de tokens en la wallet
-
-> ℹ️ ¿Quieres ver el ejemplo de un "Hola Mundo" en Solana?. Da clic aquí: 👉 [Ver Ejemplo](./build-deploy/README.md)
-
-> ℹ️ ¿Cuentas con una Wallet de [Phantom](https://phantom.com/) que deseas importar?, Da clic aquí para ver como hacerlo: 
-
-👉 [Como Importar una Wallet](./import-key-a-playground/README.md)
-
-## ¿Listo para empezar?
-
-El primer paso es hacer `fork` al repositorio. Ya con el repositorio en tu cuenta lo siguiente que debes hacer es entrar a la carpeta `proyecto` y obtener el `permalink`:
-
-![permalink](./images/permalink.png)
-
-El cual uniremos con el siguiente enlace en nuestro navegador de preferencia:
-
-```url
-https://beta.solpg.io/
+```
+Owner (Wallet)
+    │
+    └── Gimnasio (PDA)
+            │
+            ├── Miembro A (PDA)
+            ├── Miembro B (PDA)
+            └── Miembro C (PDA)
 ```
 
-Lo que nos dará algo parecido a:
+### Structs principales
 
-![url](./images/url.png)
+**`Gimnasio`**
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `owner` | `Pubkey` | Wallet del dueño |
+| `nombre` | `String` | Nombre del gimnasio |
+| `miembros` | `Vec<Pubkey>` | Lista de PDAs de miembros |
 
-Al pulsar enter seremos enviados al `Solana Playground` con nuestro proyecto abierto:
+**`Miembro`**
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `gimnasio` | `String` | Nombre del gimnasio |
+| `nombre` | `String` | Nombre del miembro |
+| `dias_restantes` | `u16` | Días de membresía activos |
+| `activo` | `bool` | Estado de la membresía |
 
-![pg](./images/pg.png)
+---
 
-Para guardarlo solo damos clic en el boton `import` y asignamos un nombre:
+## ⚙️ Instrucciones (Funciones del programa)
 
-![import](./images/import.png)
+| Instrucción | Descripción |
+|---|---|
+| `crear_gimnasio(nombre)` | Crea la cuenta del gimnasio vinculada al owner |
+| `registrar_miembro(nombre, dias)` | Registra un nuevo miembro con días de membresía |
+| `eliminar_miembro(nombre)` | Da de baja al miembro y cierra su cuenta |
+| `alternar_membresia(nombre)` | Activa o desactiva la membresía del miembro |
+| `actualizar_dias(nombre, dias)` | Actualiza los días restantes (renovación) |
 
-## ¿Como actualizo mi repositorio?
+---
 
-Una vez que realices cambios o termines tu proyecto, es necesario que **copies todo el código**, ya con el código en el portapapeles nos dirigimos nuevamente a la carpeta proyecto de tu repositorio de github **donde se obtuvo el `permalink`**, donde entraremos al carpeta `src` y al archivo `lib.rs`:
+## 🔐 PDAs (Program Derived Addresses)
 
-![edit](./images/edit.png)
+Las cuentas se derivan con los siguientes seeds:
 
-En `lib.rs` presionaremos el ícono en forma de lapiz (esquina superior derecha de la imagen 👆)
+- **Gimnasio:** `["gimnasio", nombre_gimnasio, owner_pubkey]`
+- **Miembro:** `["miembro", nombre_miembro, owner_pubkey]`
 
-Nuevamente seleccionamos todo el código pero ahora presionamos `ctrl + v` para pegar el código del `Playground`. Ya realizados los cambios presionamos el botón `Commit changes`:
+Esto garantiza que:
+1. Cada owner tiene su propio gimnasio único por nombre
+2. No pueden existir dos miembros con el mismo nombre en el mismo gimnasio
 
-![commit](./images/commit.png)
+---
 
-Nos aparecerá un menú de confirmación donde nuevamente presionamos el botón `Commit changes`:
+## 🚀 Cómo usar el proyecto (Solana Playground)
 
-![commit2](./images/commit2.png)
+1. Abre [Solana Playground](https://beta.solpg.io)
+2. Haz fork de este repositorio o pega el contenido de `src/lib.rs`
+3. Conecta tu wallet (devnet)
+4. Haz clic en **Build** y luego **Deploy**
+5. Usa el panel de **Test** para interactuar con el programa:
+
+```
+# Ejemplo de flujo:
+1. crear_gimnasio("MiGym")
+2. registrar_miembro("Juan", 30)
+3. alternar_membresia("Juan")   → desactiva membresía
+4. actualizar_dias("Juan", 60)  → renueva a 60 días
+5. eliminar_miembro("Juan")     → da de baja
+```
+
+---
+
+## 🛠️ Tecnologías
+
+- [Solana](https://solana.com/) — Blockchain de alta velocidad
+- [Anchor Framework](https://www.anchor-lang.com/) — Framework para programas Solana en Rust
+- [Rust](https://www.rust-lang.org/) — Lenguaje de programación del programa
+
+---
