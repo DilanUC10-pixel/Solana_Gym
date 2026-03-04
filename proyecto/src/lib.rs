@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("GkW8S8pj6ZJAfAETJmcuLn5cABBUrt6X8udYVRHyeJar"); // Reemplaza con tu program ID al deployar
+declare_id!("EGH5y6Wop2mZCy3cotva39C2fXLnyrkC5kFQ9M3B2Ror"); // Reemplaza con tu program ID al deployar
 
 #[program] // El programa comienza aquí
 pub mod gymchain {
